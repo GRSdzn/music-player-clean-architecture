@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { DeleteIcon, Home, MoreHorizontal, Music, Trash } from "lucide-react";
+import { Home, MoreHorizontal, Music, Trash } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { TrackUploader } from "../TrackUploader";

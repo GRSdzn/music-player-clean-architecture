@@ -20,7 +20,7 @@ export default function TrackPage() {
 
   return (
     <div>
-      <h2>Редактирование трека: {id}</h2>
+      <h2>Track: {id}</h2>
       {/* Тут эффекты, обрезка и прочее */}
     </div>
   );

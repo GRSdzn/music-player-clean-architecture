@@ -1,4 +1,4 @@
-import { AudioTrack, EffectSettings } from "./entities";
+import { EffectSettings } from "./entities";
 
 export interface AudioEngineRepository {
   load(buffer: ArrayBuffer): Promise<void>;
