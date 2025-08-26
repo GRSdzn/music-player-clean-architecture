@@ -92,18 +92,18 @@ export function TrackUploader() {
         onDrop={handleDrop}
         className={`flex items-center justify-center w-full h-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
           isDragOver
-            ? "border-blue-400 bg-blue-50 text-blue-600"
-            : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border hover:border-primary/50 hover:bg-accent"
         }`}
       >
         <Plus
           className={`h-5 w-5 ${
-            isDragOver ? "text-blue-600" : "text-gray-500"
+            isDragOver ? "text-primary" : "text-muted-foreground"
           }`}
         />
         <span
           className={`ml-2 text-sm ${
-            isDragOver ? "text-blue-600" : "text-gray-500"
+            isDragOver ? "text-primary" : "text-muted-foreground"
           }`}
         >
           {isDragOver ? "Drop audio file here" : "Add Track"}
