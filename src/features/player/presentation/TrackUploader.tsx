@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 
 export function TrackUploader() {
   const { tracks, addTrack, selectTrack } = useTracksStore();
-  const { loadTrack } = usePlaybackStore();
+  const { loadTrack, isLoading } = usePlaybackStore();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -79,6 +79,7 @@ export function TrackUploader() {
   return (
     <div className="track-uploader">
       <input
+        disabled={isLoading}
         ref={fileInputRef}
         type="file"
         onChange={handleFileChange}

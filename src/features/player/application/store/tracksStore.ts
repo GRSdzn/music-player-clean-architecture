@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { AudioTrack } from "@/features/player/domain/entities";
 import { TrackRepositoryIndexedDB } from "@/features/player/infrastructure/TrackRepositoryIndexedDB";
+import { usePlaybackStore } from "./playbackStore";
 
 const repo = new TrackRepositoryIndexedDB();
 
@@ -14,7 +15,7 @@ interface TracksStore {
   removeTrack: (id: string) => Promise<void>;
 }
 
-export const useTracksStore = create<TracksStore>((set) => ({
+export const useTracksStore = create<TracksStore>((set, get) => ({
   tracks: [],
   currentTrackId: null,
 
@@ -29,6 +30,18 @@ export const useTracksStore = create<TracksStore>((set) => ({
   },
 
   removeTrack: async (id) => {
+    const { currentTrackId } = get();
+
+    // Если удаляемый трек является текущим воспроизводимым
+    if (currentTrackId === id) {
+      // Останавливаем воспроизведение
+      const { pause } = usePlaybackStore.getState();
+      pause();
+
+      // Сбрасываем текущий трек
+      set({ currentTrackId: null });
+    }
+
     await repo.removeTrack(id);
     set((state) => ({
       tracks: state.tracks.filter((track) => track.id !== id),

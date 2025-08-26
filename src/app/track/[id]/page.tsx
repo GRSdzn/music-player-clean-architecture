@@ -5,10 +5,11 @@ import { useTracksStore } from "@/features/player/application/store/tracksStore"
 import { usePlaybackStore } from "@/features/player/application/store/playbackStore";
 import { useEffect } from "react";
 import { useRedirectIfNoTrack } from "@/hooks/use-redirect-if-no-track";
+import { LoadingFullScreen } from "@/components/ui/loading-screen";
 
 export default function TrackPage() {
   const { tracks, selectTrack } = useTracksStore();
-  const { loadTrack } = usePlaybackStore();
+  const { loadTrack, isLoading } = usePlaybackStore();
 
   const { id: rawId } = useParams();
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -26,9 +27,13 @@ export default function TrackPage() {
     }
   }, [id, tracks, selectTrack, loadTrack, isTrackSelected]);
 
+  if (isLoading) {
+    return <LoadingFullScreen />;
+  }
+
   return (
     <div>
-      <h2>Редактирование тsрека: {name}</h2>
+      <h2>Редактирование трека: {name}</h2>
 
       {/* Тут будут элементы редактирования: эффекты, обрезка и т.д. */}
     </div>
