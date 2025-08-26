@@ -40,22 +40,31 @@ export class ToneEngine implements AudioEngineRepository {
     // Не трогаем плеер, если он ещё не инициализирован
     if (this.player && this.isPlaying) this.stopInternal();
 
-    this.player?.dispose();
-    this.player = new Tone.Player({ autostart: false });
+    // Очищаем предыдущий плеер
+    if (this.player) {
+      this.player.dispose();
+    }
 
+    this.player = new Tone.Player({ autostart: false });
     this.player.connect(this.bass);
 
     const blob = new Blob([buffer], { type: "audio/wav" });
     const url = URL.createObjectURL(blob);
 
     try {
+      console.log("ToneEngine: Loading audio from blob:", url);
       await this.player.load(url); // дождёмся загрузки
       this.duration = this.player.buffer.duration;
       this.offsetSec = 0;
       this.applyRate(this.rate); // применяем скорость, если задана
       this.emitter.emit("ready", this.duration);
+      console.log("ToneEngine: Audio loaded successfully");
+    } catch (error) {
+      console.error("ToneEngine: Failed to load audio:", error);
+      throw error;
     } finally {
       URL.revokeObjectURL(url);
+      console.log("ToneEngine: Blob URL revoked:", url);
     }
   }
 

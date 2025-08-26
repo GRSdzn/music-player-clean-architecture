@@ -3,31 +3,41 @@
 import { useParams } from "next/navigation";
 import { useTracksStore } from "@/features/player/application/store/tracksStore";
 import { usePlaybackStore } from "@/features/player/application/store/playbackStore";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useRedirectIfNoTrack } from "@/hooks/use-redirect-if-no-track";
 import { LoadingFullScreen } from "@/components/loading-screen";
 
 export default function TrackPage() {
   const { tracks, selectTrack } = useTracksStore();
-  const { loadTrack, isLoading } = usePlaybackStore();
+  const { loadTrack, isLoading, currentTrackId } = usePlaybackStore();
 
   const { id: rawId } = useParams();
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
   const name = tracks.find((t) => t.id === id)?.name;
-  const isTrackSelected = useRedirectIfNoTrack();
 
-  useEffect(() => {
-    if (!id) return; // Перенесли проверку внутрь useEffect
+  // Вызываем хук, но не используем результат в зависимостях
+  useRedirectIfNoTrack();
+
+  // Мемоизируем функцию загрузки
+  const handleTrackLoad = useCallback(async () => {
+    if (!id) return;
 
     const track = tracks.find((t) => t.id === id);
     if (track) {
       selectTrack(id);
-      loadTrack(track);
-    } else {
-      // Убрали неиспользуемое выражение
-      // isTrackSelected уже выполняет свою логику при вызове
+      // Загружаем трек только если он еще не загружен
+      if (currentTrackId !== id) {
+        console.log("Loading track from TrackPage:", track.name);
+        await loadTrack(track);
+      } else {
+        console.log("Track already loaded, skipping:", track.name);
+      }
     }
-  }, [id, tracks, selectTrack, loadTrack, isTrackSelected]);
+  }, [id, tracks, currentTrackId, selectTrack, loadTrack]);
+
+  useEffect(() => {
+    handleTrackLoad();
+  }, [handleTrackLoad]);
 
   // Добавили проверку для раннего возврата после всех хуков
   if (!id) return null;

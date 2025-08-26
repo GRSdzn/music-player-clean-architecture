@@ -43,34 +43,66 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   // Загрузка трека
   loadTrack: async (track) => {
-    if (!engine) get().initEngine();
+    if (!engine) {
+      console.log("Initializing engine");
+      get().initEngine();
+    }
+
+    const currentState = get();
+
+    // Если трек уже загружен и готов, не перезагружаем
+    if (currentState.currentTrackId === track.id && currentState.isReady) {
+      console.log("Track already loaded and ready, skipping:", track.name);
+      return;
+    }
+
+    // Если тот же трек уже загружается, не запускаем повторно
+    if (currentState.currentTrackId === track.id && currentState.isLoading) {
+      console.log("Track already loading, skipping:", track.name);
+      return;
+    }
+
+    console.log(
+      "Loading track:",
+      track.name,
+      "Current:",
+      currentState.currentTrackId
+    );
 
     // Отписываемся от предыдущих событий
     timeUpdateUnsubscribe?.();
     endedUnsubscribe?.();
 
-    set({ isReady: false, isLoading: true });
+    set({ isLoading: true, currentTrackId: track.id });
 
-    // Загружаем буфер в движок
-    await engine!.load(track.buffer);
+    try {
+      // Загружаем буфер в движок
+      await engine!.load(track.buffer);
 
-    // Обновляем состояние
-    set({
-      currentTrackId: track.id,
-      duration: engine!.getDuration(),
-      currentTime: 0,
-      isPlaying: false,
-      isReady: true,
-      isLoading: false,
-    });
+      // Обновляем состояние
+      set({
+        currentTrackId: track.id,
+        duration: engine!.getDuration(),
+        currentTime: 0,
+        isPlaying: false,
+        isReady: true,
+        isLoading: false,
+      });
 
-    // Подписываемся на обновления времени и конца трека
-    timeUpdateUnsubscribe = engine!.onTimeUpdate((time) =>
-      set({ currentTime: time })
-    );
-    endedUnsubscribe = engine!.onEnded(() =>
-      set({ isPlaying: false, currentTime: engine!.getDuration() })
-    );
+      console.log("Track loaded successfully:", track.name);
+
+      // Подписываемся на обновления времени и конца трека
+      timeUpdateUnsubscribe = engine!.onTimeUpdate((time) =>
+        set({ currentTime: time })
+      );
+      endedUnsubscribe = engine!.onEnded(() =>
+        set({ isPlaying: false, currentTime: engine!.getDuration() })
+      );
+    } catch (error) {
+      console.error("Failed to load track:", track.name, error);
+      set({ isLoading: false, isReady: false });
+      throw error;
+    }
   },
 
   // Воспроизведение

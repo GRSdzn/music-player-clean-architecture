@@ -32,7 +32,7 @@ export const AppSidebarContent: React.FC = () => {
     if (!track) return;
 
     selectTrack(id);
-    await loadTrack(track);
+    // Убираем loadTrack отсюда - пусть TrackPage сам решает нужно ли загружать
     router.push(`/track/${id}`);
   };
 

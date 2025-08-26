@@ -16,6 +16,8 @@ export function BottomPlayer() {
     seek,
     setVolume,
     initEngine,
+    isReady,
+    isLoading,
   } = usePlaybackStore();
 
   const { tracks, currentTrackId } = useTracksStore();
@@ -39,29 +41,30 @@ export function BottomPlayer() {
     setVolume(value[0]);
   };
 
+  // Показываем плеер если есть трек (даже во время загрузки)
   if (!currentTrack) {
-    return (
-      <div className=" bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="flex items-center justify-center h-20 text-muted-foreground">
-          <span>No track selected</span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className=" bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+    <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t transition-all duration-300 ease-in-out">
       <div className="flex items-center gap-4 px-6 py-4 max-w-screen-xl mx-auto">
         {/* Track Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-            <Volume2 className="h-6 w-6 text-muted-foreground" />
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Volume2 className="h-6 w-6 text-muted-foreground" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <h4 className="text-sm font-medium truncate">
               {currentTrack.name}
             </h4>
-            <p className="text-xs text-muted-foreground">Audio Track</p>
+            <p className="text-xs text-muted-foreground">
+              {isLoading ? "Loading..." : "Audio Track"}
+            </p>
           </div>
         </div>
 
@@ -73,6 +76,7 @@ export function BottomPlayer() {
             size="sm"
             variant="outline"
             className="w-10 h-10 rounded-full p-0"
+            disabled={!isReady || isLoading}
           >
             {isPlaying ? (
               <Pause className="h-4 w-4" />
@@ -92,6 +96,7 @@ export function BottomPlayer() {
               step={1}
               onValueChange={handleProgressChange}
               className="flex-1"
+              disabled={!isReady || isLoading}
             />
             <span className="text-xs text-muted-foreground min-w-[40px]">
               {formatTime(duration)}
@@ -106,6 +111,7 @@ export function BottomPlayer() {
             size="sm"
             className="p-2"
             onClick={() => setVolume(volume > 0 ? 0 : 0.5)}
+            disabled={!isReady || isLoading}
           >
             {volume === 0 ? (
               <VolumeX className="h-4 w-4" />
@@ -119,6 +125,7 @@ export function BottomPlayer() {
             step={0.01}
             onValueChange={handleVolumeChange}
             className="w-24"
+            disabled={!isReady || isLoading}
           />
         </div>
       </div>

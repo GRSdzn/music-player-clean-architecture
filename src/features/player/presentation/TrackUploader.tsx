@@ -14,13 +14,12 @@ export function TrackUploader() {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const processFile = async (file: File) => {
-    // Проверяем, есть ли уже трек с таким именем
-    const existingTrack = tracks.find((track) => track.name === file.name);
+    const existingTrack = tracks.find((t) => t.name === file.name);
 
     if (existingTrack) {
       // Если трек уже существует, выбираем его и переходим на страницу
       selectTrack(existingTrack.id);
-      await loadTrack(existingTrack);
+      // Убираем loadTrack - пусть TrackPage сам загружает
       router.push(`/track/${existingTrack.id}`);
       return;
     }
@@ -37,7 +36,7 @@ export function TrackUploader() {
 
     await addTrack(track); // сохраняем в store
     selectTrack(track.id); // выбираем трек
-    await loadTrack(track); // загружаем в плеер
+    // Убираем loadTrack - пусть TrackPage сам загружает
 
     // Авто-редирект на страницу трека
     router.push(`/track/${track.id}`);
