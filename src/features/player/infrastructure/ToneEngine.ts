@@ -36,29 +36,33 @@ export class ToneEngine implements AudioEngineRepository {
 
   async load(buffer: ArrayBuffer): Promise<void> {
     await Tone.start();
-    this.stopInternal();
+
+    // Не трогаем плеер, если он ещё не инициализирован
+    if (this.player && this.isPlaying) this.stopInternal();
+
     this.player?.dispose();
     this.player = new Tone.Player({ autostart: false });
+
     this.player.connect(this.bass);
 
-    // Создаем Blob и временный URL
     const blob = new Blob([buffer], { type: "audio/wav" });
     const url = URL.createObjectURL(blob);
 
     try {
-      await this.player.load(url);
+      await this.player.load(url); // дождёмся загрузки
       this.duration = this.player.buffer.duration;
       this.offsetSec = 0;
-      this.applyRate(this.rate);
+      this.applyRate(this.rate); // применяем скорость, если задана
       this.emitter.emit("ready", this.duration);
     } finally {
-      // Освобождаем память, удаляя временный URL
       URL.revokeObjectURL(url);
     }
   }
 
   play(): void {
-    if (!this.player || this.isPlaying) return;
+    if (!this.player || !this.player.buffer) return; // проверяем готовность
+    if (this.isPlaying) return;
+
     this.startedAt = Tone.now();
     this.player.start(undefined, this.offsetSec);
     this.isPlaying = true;
@@ -146,8 +150,10 @@ export class ToneEngine implements AudioEngineRepository {
   }
 
   private stopInternal(): void {
-    this.player?.stop();
-    this.isPlaying = false;
+    if (this.isPlaying && this.player) {
+      this.player.stop();
+      this.isPlaying = false;
+    }
     if (this.raf) cancelAnimationFrame(this.raf);
   }
 }

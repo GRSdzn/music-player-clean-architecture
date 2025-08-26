@@ -1,5 +1,4 @@
 // src/features/player/application/store/playbackStore.ts
-
 import { create } from "zustand";
 import {
   PlaybackState,
@@ -8,11 +7,13 @@ import {
 } from "../../domain/entities";
 import { ToneEngine } from "../../infrastructure/ToneEngine";
 
-const engine = new ToneEngine();
+let engine: ToneEngine | null = null;
 let timeUpdateUnsubscribe: (() => void) | null = null;
 let endedUnsubscribe: (() => void) | null = null;
 
 interface PlaybackStore extends PlaybackState {
+  isReady: boolean;
+  isLoading: boolean;
   loadTrack: (track: AudioTrack) => Promise<void>;
   play: () => void;
   pause: () => void;
@@ -20,6 +21,8 @@ interface PlaybackStore extends PlaybackState {
   setVolume: (volume: number) => void;
   setPlaybackRate: (rate: number) => void;
   setEffects: (effects: EffectSettings) => void;
+  initEngine: () => void;
+  getDuration: () => number;
 }
 
 export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
@@ -30,60 +33,93 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   volume: 1,
   playbackRate: 1,
   currentTrackId: null,
+  isReady: false,
+  isLoading: false,
 
-  // Действия
+  // Инициализация движка
+  initEngine: () => {
+    if (!engine) engine = new ToneEngine();
+  },
+
+  // Загрузка трека
   loadTrack: async (track) => {
-    // Отписываемся от предыдущих событий чтобы избежать утечек памяти
+    if (!engine) get().initEngine();
+
+    // Отписываемся от предыдущих событий
     timeUpdateUnsubscribe?.();
     endedUnsubscribe?.();
 
-    await engine.load(track.buffer);
+    set({ isReady: false, isLoading: true });
 
+    // Загружаем буфер в движок
+    await engine!.load(track.buffer);
+
+    // Обновляем состояние
     set({
       currentTrackId: track.id,
-      duration: engine.getDuration(),
+      duration: engine!.getDuration(),
       currentTime: 0,
       isPlaying: false,
+      isReady: true,
+      isLoading: false,
     });
 
-    // Подписываемся на новые события
-    timeUpdateUnsubscribe = engine.onTimeUpdate((time) => {
-      set({ currentTime: time });
-    });
-
-    endedUnsubscribe = engine.onEnded(() => {
-      set({ isPlaying: false, currentTime: engine.getDuration() });
-    });
+    // Подписываемся на обновления времени и конца трека
+    timeUpdateUnsubscribe = engine!.onTimeUpdate((time) =>
+      set({ currentTime: time })
+    );
+    endedUnsubscribe = engine!.onEnded(() =>
+      set({ isPlaying: false, currentTime: engine!.getDuration() })
+    );
   },
 
+  // Воспроизведение
   play: () => {
+    const { isReady } = get();
+    if (!isReady || !engine) return; // не запускать пока не готово
     engine.play();
     set({ isPlaying: true });
   },
 
+  // Пауза
   pause: () => {
+    if (!engine) return;
     engine.pause();
     set({ isPlaying: false });
   },
 
+  // Перемотка
   seek: (time) => {
+    if (!engine || !get().isReady) return;
     engine.seek(time);
     set({ currentTime: time });
   },
 
+  // Громкость
   setVolume: (volume) => {
-    const clampedVolume = Math.max(0, Math.min(1, volume));
-    engine.setVolume(clampedVolume);
-    set({ volume: clampedVolume });
+    if (!engine) return;
+    const v = Math.max(0, Math.min(1, volume));
+    engine.setVolume(v);
+    set({ volume: v });
   },
 
+  // Скорость воспроизведения
   setPlaybackRate: (rate) => {
-    const clampedRate = Math.max(0.25, Math.min(4, rate));
-    engine.setPlaybackRate(clampedRate);
-    set({ playbackRate: clampedRate });
+    if (!engine) return;
+    const r = Math.max(0.25, Math.min(4, rate));
+    engine.setPlaybackRate(r);
+    set({ playbackRate: r });
   },
 
+  // Эффекты
   setEffects: (effects) => {
+    if (!engine) return;
     engine.setEffects(effects);
+  },
+
+  // Получение длительности текущего трека
+  getDuration: () => {
+    if (!engine) return 0;
+    return engine.getDuration();
   },
 }));

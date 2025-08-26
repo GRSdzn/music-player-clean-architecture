@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { usePlaybackStore } from "../application/store/playbackStore";
 
 export function BottomPlayer() {
@@ -10,8 +11,11 @@ export function BottomPlayer() {
     pause,
     seek,
     setVolume,
+    initEngine,
   } = usePlaybackStore();
-
+  useEffect(() => {
+    initEngine(); // инициализация только на клиенте
+  }, [initEngine]);
   return (
     <div className="bottom-player">
       <button onClick={isPlaying ? pause : play}>
