@@ -35,6 +35,17 @@ export class TrackRepositoryIndexedDB {
     });
   }
 
+  async removeTrack(id: string) {
+    if (!this.db) await this.init();
+    return new Promise<void>((resolve, reject) => {
+      const tx = this.db!.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   async getAllTracks(): Promise<AudioTrack[]> {
     if (!this.db) await this.init();
     return new Promise((resolve, reject) => {

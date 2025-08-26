@@ -11,6 +11,7 @@ interface TracksStore {
   loadTracks: () => Promise<void>;
   addTrack: (track: AudioTrack) => Promise<void>;
   selectTrack: (id: string) => void;
+  removeTrack: (id: string) => Promise<void>;
 }
 
 export const useTracksStore = create<TracksStore>((set) => ({
@@ -24,8 +25,14 @@ export const useTracksStore = create<TracksStore>((set) => ({
 
   addTrack: async (track) => {
     await repo.addTrack(track);
-    localStorage.setItem("lastTrackId", track.id);
     set((state) => ({ tracks: [...state.tracks, track] }));
+  },
+
+  removeTrack: async (id) => {
+    await repo.removeTrack(id);
+    set((state) => ({
+      tracks: state.tracks.filter((track) => track.id !== id),
+    }));
   },
 
   selectTrack: (id) => {
