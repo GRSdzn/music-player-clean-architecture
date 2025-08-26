@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Audio Editor",
-  description: "Professional audio editing application",
+  description: "FREE Audio editing application",
 };
 
 export default function RootLayout({

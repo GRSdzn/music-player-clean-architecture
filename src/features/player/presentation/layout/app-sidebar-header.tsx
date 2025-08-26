@@ -6,11 +6,14 @@ import React from "react";
 
 export const AppSidebarHeader: React.FC = () => {
   return (
-    <SidebarHeader>
-      <Link href="/" className="flex items-center gap-2 font-semibold px-2">
-        <Music className="h-4 w-4" />
-        <span className="text-lg">Audio Editor</span>
-      </Link>
+    <SidebarHeader className="p-0 border-b-2 border-primary">
+      <div className="border-i-b-2 border-primary">
+        <Link href="/" className="flex h-16 shrink-0 items-center px-4">
+          {/* 2px height line under text */}
+          <Music className="h-4 w-4" />
+          <span className="text-lg">Audio Editor</span>
+        </Link>
+      </div>
     </SidebarHeader>
   );
 };

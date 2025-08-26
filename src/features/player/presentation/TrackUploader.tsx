@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
 
 export function TrackUploader() {
-  const { tracks, addTrack,  selectTrack } = useTracksStore();
+  const { tracks, addTrack, selectTrack } = useTracksStore();
   const { loadTrack } = usePlaybackStore();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
