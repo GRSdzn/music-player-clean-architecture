@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PlayerLayout from "@/features/player/presentation/layout/PlayerLayout";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,11 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PlayerLayout>{children}</PlayerLayout>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          storageKey="audio-editor-theme"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PlayerLayout>{children}</PlayerLayout>
+        </ThemeProvider>
       </body>
     </html>
   );
