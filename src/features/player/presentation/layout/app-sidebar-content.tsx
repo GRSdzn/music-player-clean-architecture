@@ -12,7 +12,6 @@ import {
 import { Home, MoreHorizontal, Music, Trash } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { TrackUploader } from "../TrackUploader";
 import { useTracksStore } from "../../application/store/tracksStore";
 import { usePlaybackStore } from "../../application/store/playbackStore";
 import { useRouter } from "next/navigation";
@@ -22,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TrackUploader } from "../components/TrackUploader";
 
 export const AppSidebarContent: React.FC = () => {
   const { tracks, selectTrack, removeTrack } = useTracksStore();

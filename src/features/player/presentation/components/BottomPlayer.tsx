@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { usePlaybackStore } from "../application/store/playbackStore";
-import { useTracksStore } from "../application/store/tracksStore";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { usePlaybackStore } from "../../application/store/playbackStore";
+import { useTracksStore } from "../../application/store/tracksStore";
+import { BackgroundVisualizer } from "./BackgroundVisualizer";
 
 export function BottomPlayer() {
   const {
@@ -47,8 +48,11 @@ export function BottomPlayer() {
   }
 
   return (
-    <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t transition-all duration-300 ease-in-out">
-      <div className="flex items-center gap-4 px-6 py-4 max-w-screen-xl mx-auto">
+    <div className="relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t transition-all duration-300 ease-in-out overflow-hidden">
+      <div className="absolute inset-0 opacity-10 pointer-events-none transition-opacity duration-300 fade-in-10 fade-out-15">
+        <BackgroundVisualizer />
+      </div>
+      <div className="relative z-10 flex items-center gap-4 px-6 py-4 max-w-screen-xl mx-auto">
         {/* Track Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">

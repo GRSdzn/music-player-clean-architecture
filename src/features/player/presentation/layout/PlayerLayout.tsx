@@ -6,8 +6,8 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { BottomPlayer } from "@/features/player/presentation/BottomPlayer";
 import { PlayerSidebar } from "./PlayerSidebar";
+import { BottomPlayer } from "../components/BottomPlayer";
 
 export default function PlayerLayout({ children }: { children: ReactNode }) {
   return (

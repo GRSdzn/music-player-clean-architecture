@@ -1,10 +1,10 @@
 "use client";
-import { useTracksStore } from "../application/store/tracksStore";
-import { usePlaybackStore } from "../application/store/playbackStore";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
+import { useTracksStore } from "../../application/store/tracksStore";
+import { usePlaybackStore } from "../../application/store/playbackStore";
 
 export function TrackUploader() {
   const { tracks, addTrack, selectTrack } = useTracksStore();
