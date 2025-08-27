@@ -6,6 +6,7 @@ import { usePlaybackStore } from "@/features/player/application/store/playbackSt
 import { useEffect, useCallback } from "react";
 import { useRedirectIfNoTrack } from "@/hooks/use-redirect-if-no-track";
 import { LoadingFullScreen } from "@/components/loading-screen";
+import EffectsPanel from "@/features/player/presentation/components/EffectsPanel";
 
 export default function TrackPage() {
   const { tracks, selectTrack } = useTracksStore();
@@ -49,7 +50,7 @@ export default function TrackPage() {
   return (
     <div>
       <h2>Редактирование трека: {name}</h2>
-      {/* Тут будут элементы редактирования: эффекты, обрезка и т.д. */}
+      <EffectsPanel />
     </div>
   );
 }
