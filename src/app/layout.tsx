@@ -1,22 +1,24 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import PlayerLayout from "@/features/player/presentation/layout/PlayerLayout";
-import { ThemeProvider } from "@/components/theme-provider";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import PlayerLayout from '@/features/player/presentation/layout/PlayerLayout';
+import { ThemeProvider } from '@/components/theme-provider';
+import { DynamicTitle } from '@/components/dynamic-title';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
+// Статический metadata для базового заголовка
 export const metadata: Metadata = {
-  title: "Audio Editor",
-  description: "FREE Audio editing application",
+  title: 'Audio Editor',
+  description: 'FREE Audio editing application',
 };
 
 export default function RootLayout({
@@ -26,16 +28,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          storageKey="audio-editor-theme"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+        {/* Динамический заголовок будет обновляться на клиенте */}
+        <DynamicTitle />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" storageKey="audio-editor-theme" enableSystem disableTransitionOnChange>
           <PlayerLayout>{children}</PlayerLayout>
         </ThemeProvider>
       </body>

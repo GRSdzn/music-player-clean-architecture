@@ -19,6 +19,11 @@ export interface AudioEngineRepository {
   onTimeUpdate(callback: (time: number) => void): () => void;
   onEnded(callback: () => void): () => void;
 
-  // (на будущее) оффлайн-рендер для экспорта
-  // renderToWav(options?: { region?: Region | null }): Promise<Blob>;
+  // Оффлайн-рендер для экспорта
+  renderToWav(options?: { 
+    region?: Region | null;
+    effects?: EffectSettings;
+    playbackRate?: number;
+    volume?: number;
+  }): Promise<Blob>;
 }

@@ -1,18 +1,16 @@
-import { create } from "zustand";
-import {
-  PlaybackState,
-  AudioTrack,
-  EffectSettings,
-  Region,
-} from "../../domain/entities";
-import { ToneEngine } from "../../infrastructure/ToneEngine";
+import { create } from 'zustand';
+import { PlaybackState, AudioTrack, EffectSettings, Region } from '../../domain/entities';
+import { ToneEngine } from '../../infrastructure/ToneEngine';
 
-type PresetName = "slowedReverb" | "bassBoost" | "nightcore" | "default";
+type PresetName = 'slowedReverb' | 'bassBoost' | 'nightcore' | 'default';
 
+// Расширяем PlaybackState дополнительными свойствами для store
 interface PlaybackStore extends PlaybackState {
   isReady: boolean;
   isLoading: boolean;
   engine: ToneEngine | null;
+  effects: EffectSettings;
+  region: Region | null;
 
   initEngine: () => void;
   loadTrack: (track: AudioTrack) => Promise<void>;
@@ -23,175 +21,212 @@ interface PlaybackStore extends PlaybackState {
   setVolume: (volume: number) => void;
   setPlaybackRate: (rate: number) => void;
 
-  effects: EffectSettings;
-  region: Region | null;
-
   setEffects: (effects: Partial<EffectSettings>) => void;
-  setEffect: <K extends keyof EffectSettings>(
-    key: K,
-    value: EffectSettings[K]
-  ) => void;
+  setEffect: <K extends keyof EffectSettings>(key: K, value: EffectSettings[K]) => void;
   setRegion: (region: Region | null) => void;
   applyPreset: (preset: PresetName) => void;
 
   getDuration: () => number;
   getEngine: () => ToneEngine | null;
+  exportTrack: (filename?: string) => Promise<void>;
 }
 
 const DEFAULT_EFFECTS: EffectSettings = {
-  reverbWet: 0.2,
-  roomSize: 0.3,
-  dampening: 3000,
+  reverbWet: 0.3,    // Увеличено
+  roomSize: 0.5,     // Увеличено
+  dampening: 2000,   // Уменьшено для яркости
   bassGain: 0,
   pitch: 0,
 };
 
-export const usePlaybackStore = create<PlaybackStore>((set, get) => {
-  let timeUpdateUnsub: (() => void) | null = null;
-  let endedUnsub: (() => void) | null = null;
-  let seekDebounceTimeout: NodeJS.Timeout | null = null;
+// Переменные для отписки от событий
+let timeUpdateUnsub: (() => void) | undefined;
+let endedUnsub: (() => void) | undefined;
 
-  return {
-    isPlaying: false,
-    currentTime: 0,
-    duration: 0,
-    volume: 1,
-    playbackRate: 1,
-    currentTrackId: null,
+export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
+  // Базовые свойства PlaybackState
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  volume: 1,
+  playbackRate: 1,
+  currentTrackId: null,
 
-    isReady: false,
-    isLoading: false,
-    engine: null,
-    effects: DEFAULT_EFFECTS,
-    region: null,
+  // Дополнительные свойства store
+  isReady: false,
+  isLoading: false,
+  engine: null,
+  effects: DEFAULT_EFFECTS,
+  region: null,
 
-    initEngine: () => set({ engine: get().engine || new ToneEngine() }),
+  initEngine: () => {
+    const currentEngine = get().engine;
+    if (!currentEngine) {
+      set({ engine: new ToneEngine() });
+    }
+  },
 
-    loadTrack: async (track) => {
-      if (!get().engine) get().initEngine();
-      const engine = get().engine!;
-      timeUpdateUnsub?.();
-      endedUnsub?.();
+  exportTrack: async (filename?: string) => {
+    const engine = get().engine;
+    const { currentTrackId } = get();
+    
+    if (!engine || !currentTrackId) {
+      throw new Error('No track loaded');
+    }
 
-      // Очищаем debounce timeout при загрузке нового трека
-      if (seekDebounceTimeout) {
-        clearTimeout(seekDebounceTimeout);
-        seekDebounceTimeout = null;
-      }
+    try {
+      const blob = await engine.renderToWav({
+        region: get().region,
+        effects: get().effects,
+        playbackRate: get().playbackRate,
+        volume: get().volume,
+      });
 
-      set({ isLoading: true, isReady: false, currentTrackId: track.id });
+      // Скачиваем файл
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || `track_${currentTrackId}_with_effects.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      throw error;
+    }
+  },
 
-      try {
-        await engine.load(track.buffer);
-        engine.setEffects(get().effects);
-        if (get().region) engine.setRegion(get().region);
+  loadTrack: async (track) => {
+    if (!get().engine) get().initEngine();
+    const engine = get().engine!;
+    
+    // Отписываемся от предыдущих событий
+    timeUpdateUnsub?.();
+    endedUnsub?.();
 
-        set({
-          duration: engine.getDuration(),
-          currentTime: 0,
-          isPlaying: false,
-          isReady: true,
-          isLoading: false,
-        });
+    set({ isLoading: true, currentTrackId: track.id });
 
-        timeUpdateUnsub = engine.onTimeUpdate((time) =>
-          set({ currentTime: time })
-        );
-        endedUnsub = engine.onEnded(() =>
-          set({ isPlaying: false, currentTime: engine.getDuration() })
-        );
-      } catch (e) {
-        set({ isLoading: false, isReady: false });
-        throw e;
-      }
-    },
+    try {
+      await engine.load(track.buffer);
+      
+      // Подписываемся на события
+      timeUpdateUnsub = engine.onTimeUpdate((time) => {
+        set({ currentTime: time });
+      });
+      
+      endedUnsub = engine.onEnded(() => {
+        set({ isPlaying: false, currentTime: get().duration });
+      });
+      
+      set({ 
+        duration: engine.getDuration(),
+        isReady: true,
+        isLoading: false,
+        currentTime: 0
+      });
+    } catch (error) {
+      console.error('Failed to load track:', error);
+      set({ isLoading: false, isReady: false });
+      throw error;
+    }
+  },
 
-    play: () => {
-      if (!get().engine || !get().isReady) return;
+  play: () => {
+    if (!get().engine || !get().isReady) return;
+    
+    try {
       get().engine?.play();
       set({ isPlaying: true });
-    },
-
-    pause: () => {
-      get().engine?.pause();
-      set({ isPlaying: false });
-    },
-
-    // Улучшенный seek с debouncing
-    seek: (time) => {
-      const engine = get().engine;
-      if (!engine) return;
-
-      // Синхронное обновление UI и engine
-      set({ currentTime: time });
-      engine.seek(time);
-    },
-    setVolume: (v) => {
-      get().engine?.setVolume(Math.max(0, Math.min(1, v)));
-      set({ volume: v });
-    },
-
-    setPlaybackRate: (r) => {
-      get().engine?.setPlaybackRate(Math.max(0.25, Math.min(4, r)));
-      set({ playbackRate: r });
-    },
-
-    setEffects: (partial) => {
-      const next = { ...get().effects, ...partial };
-      set({ effects: next });
-      get().engine?.setEffects(next);
-    },
-
-    setEffect: (key, value) => {
-      const next = { ...get().effects, [key]: value };
-      set({ effects: next });
-      get().engine?.setEffect(key, value);
-    },
-
-    setRegion: (region) => {
-      get().engine?.setRegion(region);
-      set({ region });
-    },
-
-    applyPreset: (preset) => {
-      switch (preset) {
-        case "slowedReverb":
-          get().setPlaybackRate(0.85);
-          get().setEffects({
-            reverbWet: 0.45,
-            roomSize: 0.7,
-            dampening: 2500,
-            bassGain: 3,
-            pitch: 0,
-          });
-          break;
-        case "bassBoost":
-          get().setPlaybackRate(1);
-          get().setEffects({
-            reverbWet: 0.1,
-            roomSize: 0.4,
-            dampening: 3500,
-            bassGain: 8,
-            pitch: 0,
-          });
-          break;
-        case "nightcore":
-          get().setPlaybackRate(1.25);
-          get().setEffects({
-            reverbWet: 0.15,
-            roomSize: 0.5,
-            dampening: 4000,
-            bassGain: -1,
-            pitch: 2,
-          });
-          break;
-        default:
-          get().setPlaybackRate(1);
-          get().setEffects(DEFAULT_EFFECTS);
+    } catch (error) {
+      console.error('Playback failed:', error);
+      // Можно показать уведомление пользователю
+      if (error instanceof Error && error.message.includes('пользовательское взаимодействие')) {
+        // Показать пользователю сообщение о необходимости клика
+        alert('Для воспроизведения аудио необходимо взаимодействие с страницей. Попробуйте еще раз.');
       }
-    },
+    }
+  },
 
-    getDuration: () => get().engine?.getDuration() ?? 0,
-    getEngine: () => get().engine,
-  };
-});
+  pause: () => {
+    get().engine?.pause();
+    set({ isPlaying: false });
+  },
+
+  seek: (time) => {
+    const engine = get().engine;
+    if (!engine) return;
+    engine.seek(time);
+    set({ currentTime: time });
+  },
+
+  setVolume: (v) => {
+    const volume = Math.max(0, Math.min(1, v));
+    get().engine?.setVolume(volume);
+    set({ volume });
+  },
+
+  setPlaybackRate: (r) => {
+    const rate = Math.max(0.25, Math.min(4, r));
+    get().engine?.setPlaybackRate(rate);
+    set({ playbackRate: rate });
+  },
+
+  setEffects: (partial) => {
+    const next = { ...get().effects, ...partial };
+    set({ effects: next });
+    get().engine?.setEffects(next);
+  },
+
+  setEffect: (key, value) => {
+    const next = { ...get().effects, [key]: value };
+    set({ effects: next });
+    get().engine?.setEffect(key, value);
+  },
+
+  setRegion: (region) => {
+    get().engine?.setRegion(region);
+    set({ region });
+  },
+
+  applyPreset: (preset) => {
+    switch (preset) {
+      case 'slowedReverb':
+        get().setPlaybackRate(0.85);
+        get().setEffects({
+          reverbWet: 0.45,
+          roomSize: 0.7,
+          dampening: 2500,
+          bassGain: 3,
+          pitch: 0,
+        });
+        break;
+      case 'bassBoost':
+        get().setPlaybackRate(1);
+        get().setEffects({
+          reverbWet: 0.1,
+          roomSize: 0.4,
+          dampening: 3500,
+          bassGain: 8,
+          pitch: 0,
+        });
+        break;
+      case 'nightcore':
+        get().setPlaybackRate(1.25);
+        get().setEffects({
+          reverbWet: 0.15,
+          roomSize: 0.5,
+          dampening: 4000,
+          bassGain: -1,
+          pitch: 2,
+        });
+        break;
+            default:
+        get().setPlaybackRate(1);
+        get().setEffects(DEFAULT_EFFECTS);
+    }
+  },
+
+  getDuration: () => get().engine?.getDuration() ?? 0,
+  getEngine: () => get().engine,
+}));

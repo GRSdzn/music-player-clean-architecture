@@ -10,6 +10,13 @@ interface SliderControlProps {
   onChange: (v: number) => void;
 }
 
+// Функция для округления значений
+function formatValue(value: number, step: number): string {
+  // Определяем количество знаков после запятой на основе step
+  const decimals = step >= 1 ? 0 : step.toString().split('.')[1]?.length || 0;
+  return value.toFixed(decimals);
+}
+
 export function SliderControl({
   label,
   value,
@@ -24,7 +31,7 @@ export function SliderControl({
       <div className="flex items-center justify-between">
         <label className="text-xs text-muted-foreground">{label}</label>
         <span className="text-xs text-muted-foreground font-mono">
-          {value}
+          {formatValue(value, step)}
           {unit || ""}
         </span>
       </div>
@@ -39,11 +46,11 @@ export function SliderControl({
       />
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>
-          {min}
+          {formatValue(min, step)}
           {unit || ""}
         </span>
         <span>
-          {max}
+          {formatValue(max, step)}
           {unit || ""}
         </span>
       </div>

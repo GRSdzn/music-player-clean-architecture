@@ -1,159 +1,138 @@
-# Цель
+# 🎵 Music Editor - Open Source Audio Processing Platform
 
-Локальный аудио‑редактор/плеер без сервера: загрузка треков, список в боковом меню, страница трека по id, нижний фиксированный плеер с seek/громкостью, эффекты: speed, reverb, bass boost. Стек: Next.js (App Router) + TypeScript + Zustand + Tone.js + shadcn/ui. Хранение: IndexedDB.
-
----
-
-## Слои (чистая архитектура внутри feature)
-
-- **domain**: сущности, интерфейсы репозиториев/юзкейсов.
-- **application**: юзкейсы, store, компоненты бизнес-логики.
-- **infrastructure**: адаптеры (Tone.js, IndexedDB и др.).
-- **presentation**: UI компоненты React.
-
-Зависимости: presentation → application → domain; infrastructure внедряется в application.
+_[Русский](#русский) | [English](#english)_
 
 ---
 
-## Фичи
+## Русский
 
-### 1. Track
+### 🚀 О проекте
 
-- **domain**: `Track`, `EffectSettings`
-- **application**: `AddTrackFromFile`, `GetTrackById`, `UpdateEffectSettings`
-- **infrastructure**: `TrackRepositoryIndexedDb`, `EffectRepositoryIndexedDb`
-- **presentation**: `TrackPage` (`/track/[id]`), `TrackEffectsPanel`, waveform, UI для настроек эффектов.
+**Music Editor** — это современное веб-приложение с открытым исходным кодом для редактирования и обработки аудио файлов прямо в браузере. Проект находится на раннем этапе разработки и активно развивается.
 
-### 2. Library
+### 🚀 Быстрый старт
 
-- **domain**: список треков
-- **application**: `ListTracks`, `RemoveTrack`
-- **infrastructure**: работа с IndexedDB для списка
-- **presentation**: `Sidebar`, загрузка файлов, поиск, переходы
+1. **Клонируйте репозиторий**
 
-### 3. Player ✅ **Реализовано**
+   ```bash
+   git clone https://github.com/your-username/music-editor.git
+   cd music-editor
+   ```
 
-- **domain**:
-  - `PlaybackState` - состояние воспроизведения
-  - `AudioTrack` - интерфейс аудио трека
-  - `EffectSettings` - настройки эффектов
-  - `AudioEngineRepository` - контракт для аудио движка
-- **application**:
-  - `PlaybackControls` - use case для управления воспроизведением
-  - `SelectTrack` - use case для выбора трека
-  - `playbackStore` - Zustand store для состояния плеера
-- **infrastructure**:
-  - `ToneEngine` - реализация AudioEngineRepository через Tone.js
-- **presentation**:
-  - `BottomPlayer.tsx` - React компонент нижнего плеера
+2. **Установите зависимости**
 
-### 4. Shared
-
-- **ui**: общие компоненты shadcn (Button, Slider, Dialog, Sidebar, Layout)
-- **lib**: утилиты (ids, time)
-- **persistence**: общая работа с IndexedDB
-- **store**: провайдеры и общие store
-
----
-
-## Дерево проекта
-
-```
-src/
-  app/
-    (main)/layout.tsx
-    page.tsx
-    track/[id]/page.tsx
-    globals.css
-
-  features/
-    track/
-      domain/
-        entities.ts
-        repositories.ts
-      application/
-        AddTrackFromFile.ts
-        GetTrackById.ts
-        UpdateEffectSettings.ts
-      infrastructure/
-        TrackRepositoryIndexedDb.ts
-        EffectRepositoryIndexedDb.ts
-      presentation/
-        TrackPage.tsx
-        TrackEffectsPanel.tsx
-        Waveform.tsx
-
-    library/
-      domain/
-        entities.ts
-      application/
-        ListTracks.ts
-        RemoveTrack.ts
-      infrastructure/
-        LibraryRepositoryIndexedDb.ts
-      presentation/
-        Sidebar.tsx
-        UploadDialog.tsx
-
-    player/ ✅ **Реализовано**
-      domain/
-        entities.ts          # PlaybackState, AudioTrack, EffectSettings
-        repositories.ts      # AudioEngineRepository interface
-      application/
-        components/
-          PlaybackControls.ts # Use case для управления воспроизведением
-          SelectTrack.ts     # Use case для выбора трека
-        store/
-          playbackStore.ts   # Zustand store с состоянием плеера
-      infrastructure/
-        ToneEngine.ts        # Реализация через Tone.js
-      presentation/
-        BottomPlayer.tsx     # React компонент UI
-
-  shared/
-    ui/
-      FileDrop.tsx
-      Button.tsx
-      Slider.tsx
-    lib/
-      time.ts
-      ids.ts
-    persistence/
-      indexedDb.ts
-    store/
-      providers/StoreProvider.tsx
-      slices/
-        player.ts
-        effects.ts
-        library.ts
-        ui.ts
-
-  styles/
-    shadcn.css
+```bash
+npm install
 ```
 
----
+3. Запустите проект
 
-## Жизненный цикл
+   ```
+   npm run dev
+   ```
 
-1. Пользователь загружает файл → `track.application.AddTrackFromFile` сохраняет blob в IndexedDB.
-2. Library через `ListTracks` отображает список.
-3. Переход на `/track/[id]` → `track.application.GetTrackById` + загрузка в Player.
-4. Player через `ToneEngine` управляет воспроизведением.
-5. Изменения эффектов (`UpdateEffectSettings`) обновляют и IndexedDB, и Engine.
+4. Откройте в браузере
 
----
+   ```
+   http://localhost:3000
+   ```
 
-## Мини‑план интеграции
+### 📋 Использование
 
-1. ✅ Каркас App Router + layout (Sidebar + BottomPlayer).
-2. ⏳ IndexedDB + репозитории.
-3. ✅ ToneEngine + Zustand связка.
-4. ⏳ Фича `library` — загрузка и отображение треков.
-5. ⏳ Фича `track` — страница с эффектами.
-6. ✅ Фича `player` — управление воспроизведением (архитектура готова).
-7. ⏳ UI улучшения и расширения.
+1. 1. Загрузите аудио файл через интерфейс
+2. 2. Используйте панель эффектов для настройки звука
+3. 3. Применяйте готовые пресеты или создавайте свои
+4. 4. Скачивайте обработанный трек
 
----
+### Вклад в проект
 
-Теперь каждая фича содержит полный цикл (domain → application → infra → presentation), а общее выносится в `shared/`. Это соответствует **feature-sliced architecture**.
+Мы приветствуем любой вклад в развитие проекта! Пожалуйста:
+
+1. 1. Форкните репозиторий
+2. 2. Создайте ветку для новой функции ( git checkout -b feature/amazing-feature )
+3. 3. Зафиксируйте изменения ( git commit -m 'Add amazing feature' )
+4. 4. Отправьте в ветку ( git push origin feature/amazing-feature )
+5. 5. Откройте Pull Request
+
+### 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT. Подробности в файле LICENSE .
+
+### 📞 Контакты
+
+- GitHub : your-username
+- Email : your-email@example.com
+
+## English
+
+### 🚀 About
+
+Music Editor is a modern open-source web application for editing and processing audio files directly in the browser. The project is in early development stage and actively evolving.
+
+### Tech Stack
+
+- Frontend : Next.js 15, React 19, TypeScript
+- Audio : Tone.js for audio processing
+- UI : Tailwind CSS, Radix UI
+- State Management : Zustand
+- Architecture : Clean Architecture principles
+
+### Quick Start
+
+1. 1. Clone the repository
+
+   ```
+   git clone https://github.com/
+   your-username/music-editor.git
+   cd music-editor
+   ```
+
+2. 2. Install dependencies
+
+   ```
+   npm install
+   ```
+
+3. 3. Start the development server
+
+   ```
+   npm run dev
+   ```
+
+4. 4. Open in browser
+
+   ```
+   http://localhost:3000
+   ```
+
+### 📋 Usage
+
+1. 1. Upload an audio file through the interface
+2. 2. Use the effects panel to adjust the sound
+3. 3. Apply ready-made presets or create your own
+4. 4. Download the processed track
+
+### Contributing
+
+We welcome any contribution to the project! Please:
+
+1. 1. Fork the repository
+2. 2. Create a feature branch ( git checkout -b feature/amazing-feature )
+3. 3. Commit your changes ( git commit -m 'Add amazing feature' )
+4. 4. Push to the branch ( git push origin feature/amazing-feature )
+5. 5. Open a Pull Request
+
+### 📄 License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+### Contact
+
+```
+- GitHub : your-username
+- Email : your-email@example.com
+  Made with ❤️ by the open source community
+
+⭐ Star this repo if you find it helpful!
+
+```
