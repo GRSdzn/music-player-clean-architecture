@@ -1,31 +1,15 @@
-"use client";
-import {
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Home, MoreHorizontal, Music, Trash } from "lucide-react";
-import Link from "next/link";
-import React from "react";
-import { useTracksStore } from "../../application/store/tracksStore";
-import { usePlaybackStore } from "../../application/store/playbackStore";
-import { useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { TrackUploader } from "../components/TrackUploader";
+'use client';
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { Home, MoreHorizontal, Music, Trash } from 'lucide-react';
+import Link from 'next/link';
+import React from 'react';
+import { useTracksStore } from '../../application/store/tracksStore';
+import { useRouter } from 'next/navigation';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { TrackUploader } from '../components/TrackUploader';
 
 export const AppSidebarContent: React.FC = () => {
   const { tracks, selectTrack, removeTrack } = useTracksStore();
-  const { loadTrack } = usePlaybackStore();
   const router = useRouter();
   const handleTrackClick = async (id: string) => {
     const track = tracks.find((t) => t.id === id);
@@ -68,10 +52,7 @@ export const AppSidebarContent: React.FC = () => {
           <SidebarMenu>
             {tracks.map((track) => (
               <SidebarMenuItem key={track.id}>
-                <SidebarMenuButton
-                  onClick={() => handleTrackClick(track.id)}
-                  className="cursor-pointer"
-                >
+                <SidebarMenuButton onClick={() => handleTrackClick(track.id)} className="cursor-pointer">
                   <Music className="h-4 w-4" />
                   <span className="truncate">{track.name}</span>
                 </SidebarMenuButton>
@@ -82,10 +63,7 @@ export const AppSidebarContent: React.FC = () => {
                     </SidebarMenuAction>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteTrack(track.id)}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => handleDeleteTrack(track.id)} className="cursor-pointer">
                       <Trash />
                       <span>Delete</span>
                     </DropdownMenuItem>

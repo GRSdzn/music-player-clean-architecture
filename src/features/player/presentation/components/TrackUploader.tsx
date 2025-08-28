@@ -1,14 +1,14 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
-import { Plus } from "lucide-react";
-import { useRef, useState } from "react";
-import { useTracksStore } from "../../application/store/tracksStore";
-import { usePlaybackStore } from "../../application/store/playbackStore";
+'use client';
+import { useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
+import { Plus } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useTracksStore } from '../../application/store/tracksStore';
+import { usePlaybackStore } from '../../application/store/playbackStore';
 
 export function TrackUploader() {
   const { tracks, addTrack, selectTrack } = useTracksStore();
-  const { loadTrack, isLoading } = usePlaybackStore();
+  const { isLoading } = usePlaybackStore();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -67,7 +67,7 @@ export function TrackUploader() {
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files);
-    const audioFiles = files.filter((file) => file.type.startsWith("audio/"));
+    const audioFiles = files.filter((file) => file.type.startsWith('audio/'));
 
     if (audioFiles.length > 0) {
       // Обрабатываем только первый аудио файл
@@ -77,37 +77,18 @@ export function TrackUploader() {
 
   return (
     <div className="track-uploader">
-      <input
-        disabled={isLoading}
-        ref={fileInputRef}
-        type="file"
-        onChange={handleFileChange}
-        accept="audio/*"
-        className="hidden"
-      />
+      <input disabled={isLoading} ref={fileInputRef} type="file" onChange={handleFileChange} accept="audio/*" className="hidden" />
       <div
         onClick={handleClick}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`flex items-center justify-center w-full h-12 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-          isDragOver
-            ? "border-primary bg-primary/10 text-primary"
-            : "border-border hover:border-primary/50 hover:bg-accent"
+          isDragOver ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50 hover:bg-accent'
         }`}
       >
-        <Plus
-          className={`h-5 w-5 ${
-            isDragOver ? "text-primary" : "text-muted-foreground"
-          }`}
-        />
-        <span
-          className={`ml-2 text-sm ${
-            isDragOver ? "text-primary" : "text-muted-foreground"
-          }`}
-        >
-          {isDragOver ? "Drop audio file here" : "Add Track"}
-        </span>
+        <Plus className={`h-5 w-5 ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`} />
+        <span className={`ml-2 text-sm ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`}>{isDragOver ? 'Drop audio file here' : 'Add Track'}</span>
       </div>
     </div>
   );

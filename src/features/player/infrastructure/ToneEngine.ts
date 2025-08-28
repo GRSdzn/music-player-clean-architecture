@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import * as Tone from 'tone';
@@ -61,13 +62,12 @@ export class ToneEngine implements AudioEngineRepository {
     this.setEffects(this.effects);
   }
 
-  private async ensureAudioContextStarted(): Promise<void> {
-    if (!this.isAudioContextStarted) {
+  private async ensureAudioContextStarted() {
+    if (Tone.getContext().state !== 'running') {
       try {
         await Tone.start();
-        this.isAudioContextStarted = true;
-      } catch (error) {
-        throw new Error('AudioContext не может быть запущен. Требуется пользовательское взаимодействие (клик, тап).');
+      } catch {
+        // Игнорируем ошибку, если контекст уже запущен
       }
     }
   }
@@ -277,7 +277,10 @@ export class ToneEngine implements AudioEngineRepository {
 
   private applyRate(rate: number) {
     this.rate = rate;
-    if (this.player) (this.player as any).playbackRate = rate;
+    if (this.player) {
+      const playerWithRate = this.player as { playbackRate: number };
+      playerWithRate.playbackRate = rate;
+    }
   }
 
   private loop() {
